@@ -8,13 +8,14 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(),
+      theme: ThemeData(
+        colorScheme: ColorScheme.dark(),
+        useMaterial3: true,
+      ),
       home: ChatScreen(),
     );
   }
@@ -46,8 +47,7 @@ class ChatController extends GetxController {
         var data = jsonDecode(response.body);
         messages.add({"role": "bot", "message": data['response']});
       } else {
-        messages
-            .add({"role": "bot", "message": "Error: Unable to fetch response"});
+        messages.add({"role": "bot", "message": "Error: Unable to fetch response"});
       }
     } catch (e) {
       messages.add({"role": "bot", "message": "Error: $e"});
@@ -57,28 +57,32 @@ class ChatController extends GetxController {
 }
 
 class ChatScreen extends StatelessWidget {
-  ChatScreen({super.key});
-
   final ChatController controller = Get.put(ChatController());
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("DeepSeek Chat")),
+      appBar: AppBar(
+        title: Text("DeepSeek Chat", style: TextStyle(fontWeight: FontWeight.bold)),
+        centerTitle: true,
+      ),
       body: Column(
         children: [
           Expanded(
             child: Obx(() => ListView.builder(
-                  padding: EdgeInsets.all(10),
-                  itemCount: controller.messages.length,
-                  itemBuilder: (context, index) {
-                    var msg = controller.messages[index];
-                    bool isUser = msg["role"] == "user";
-                    return Align(
-                      alignment:
-                          isUser ? Alignment.centerRight : Alignment.centerLeft,
+              padding: EdgeInsets.all(10),
+              itemCount: controller.messages.length,
+              itemBuilder: (context, index) {
+                var msg = controller.messages[index];
+                bool isUser = msg["role"] == "user";
+                return Row(
+                  mainAxisAlignment:
+                  isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+                  children: [
+                    if (!isUser) CircleAvatar(child: Icon(Icons.android)),
+                    Flexible(
                       child: Container(
-                        margin: EdgeInsets.symmetric(vertical: 5),
+                        margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                         padding: EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: isUser ? Colors.blue : Colors.grey[800],
@@ -89,15 +93,18 @@ class ChatScreen extends StatelessWidget {
                           style: TextStyle(color: Colors.white),
                         ),
                       ),
-                    );
-                  },
-                )),
+                    ),
+                    if (isUser) CircleAvatar(child: Icon(Icons.person)),
+                  ],
+                );
+              },
+            )),
           ),
           Obx(() => controller.isLoading.value
               ? Padding(
-                  padding: EdgeInsets.all(10),
-                  child: CircularProgressIndicator(),
-                )
+            padding: EdgeInsets.all(10),
+            child: CircularProgressIndicator(),
+          )
               : SizedBox.shrink()),
           Padding(
             padding: EdgeInsets.all(10),
@@ -108,13 +115,16 @@ class ChatScreen extends StatelessWidget {
                     controller: controller.textController,
                     decoration: InputDecoration(
                       hintText: "Type your message...",
-                      border: OutlineInputBorder(),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                 ),
-                IconButton(
-                  icon: Icon(Icons.send),
+                SizedBox(width: 8),
+                FloatingActionButton(
                   onPressed: controller.sendMessage,
+                  child: Icon(Icons.send),
                 )
               ],
             ),

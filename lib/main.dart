@@ -8,6 +8,8 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
@@ -32,9 +34,11 @@ class ChatController extends GetxController {
 
     try {
       final response = await http.post(
-        Uri.parse('https://api.deepseek.com/'),
-        //Uri.parse('https://api.deepseek.com/v1/chat'),
-        headers: {'Authorization': 'Bearer YOUR_API_KEY'},
+        Uri.parse('https://api.deepseek.com/v1/chat'),
+        headers: {
+          'Authorization': 'Bearer YOUR_API_KEY',
+          'Content-Type': 'application/json',
+        },
         body: jsonEncode({"messages": messages}),
       );
 
@@ -42,7 +46,8 @@ class ChatController extends GetxController {
         var data = jsonDecode(response.body);
         messages.add({"role": "bot", "message": data['response']});
       } else {
-        messages.add({"role": "bot", "message": "Error: Unable to fetch response"});
+        messages
+            .add({"role": "bot", "message": "Error: Unable to fetch response"});
       }
     } catch (e) {
       messages.add({"role": "bot", "message": "Error: $e"});
@@ -52,6 +57,8 @@ class ChatController extends GetxController {
 }
 
 class ChatScreen extends StatelessWidget {
+  ChatScreen({super.key});
+
   final ChatController controller = Get.put(ChatController());
 
   @override
@@ -62,34 +69,35 @@ class ChatScreen extends StatelessWidget {
         children: [
           Expanded(
             child: Obx(() => ListView.builder(
-              padding: EdgeInsets.all(10),
-              itemCount: controller.messages.length,
-              itemBuilder: (context, index) {
-                var msg = controller.messages[index];
-                bool isUser = msg["role"] == "user";
-                return Align(
-                  alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: EdgeInsets.symmetric(vertical: 5),
-                    padding: EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: isUser ? Colors.blue : Colors.grey[800],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      msg["message"]!,
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                );
-              },
-            )),
+                  padding: EdgeInsets.all(10),
+                  itemCount: controller.messages.length,
+                  itemBuilder: (context, index) {
+                    var msg = controller.messages[index];
+                    bool isUser = msg["role"] == "user";
+                    return Align(
+                      alignment:
+                          isUser ? Alignment.centerRight : Alignment.centerLeft,
+                      child: Container(
+                        margin: EdgeInsets.symmetric(vertical: 5),
+                        padding: EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isUser ? Colors.blue : Colors.grey[800],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          msg["message"]!,
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    );
+                  },
+                )),
           ),
           Obx(() => controller.isLoading.value
               ? Padding(
-            padding: EdgeInsets.all(10),
-            child: CircularProgressIndicator(),
-          )
+                  padding: EdgeInsets.all(10),
+                  child: CircularProgressIndicator(),
+                )
               : SizedBox.shrink()),
           Padding(
             padding: EdgeInsets.all(10),
